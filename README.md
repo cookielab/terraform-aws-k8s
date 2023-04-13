@@ -1,13 +1,3 @@
-# Kubernetes module for AWS
-
-This module simplifies opinionated deployment of Kubernetes on AWS EKS.
-
-## Submodules
-
-- `cluster_apps`
-- `asg_tagging`
-
-
 <!-- BEGIN_AUTOMATED_TF_DOCS_BLOCK -->
 ## Requirements
 
@@ -27,6 +17,7 @@ module "example" {
 	 k8s_kube_proxy_version  = 
 	 k8s_version  = 
 	 k8s_vpc_cni_version  = 
+	 node_group_defaults  = 
 	 private_subnet_ids  = 
 	 project  = 
 	 region  = 
@@ -36,7 +27,6 @@ module "example" {
 	 aws_auth_roles  = []
 	 k8s_control_private  = true
 	 k8s_control_public  = true
-	 node_group_defaults  = {}
 	 node_groups_all_az  = {}
 	 node_groups_per_az  = {}
 	 sg_rules_cluster  = {}
@@ -65,14 +55,14 @@ module "example" {
 | <a name="input_k8s_kube_proxy_version"></a> [k8s\_kube\_proxy\_version](#input\_k8s\_kube\_proxy\_version) | Kubernetes kube-proxy addon version to use in EKS | `string` | n/a | yes |
 | <a name="input_k8s_version"></a> [k8s\_version](#input\_k8s\_version) | Kubernetes version to use in EKS | `string` | n/a | yes |
 | <a name="input_k8s_vpc_cni_version"></a> [k8s\_vpc\_cni\_version](#input\_k8s\_vpc\_cni\_version) | Kubernetes vpc-cni addon version to use in EKS | `string` | n/a | yes |
-| <a name="input_node_group_defaults"></a> [node\_group\_defaults](#input\_node\_group\_defaults) | Contains configuration for EKS module's `node_group_defaults` attribute.<br><br>Bottlerocket is used by default.<br><br>Example:<pre>{<br>  instance_types = ["t3.medium"]<br>}</pre> | `map(any)` | `{}` | no |
-| <a name="input_node_groups_all_az"></a> [node\_groups\_all\_az](#input\_node\_groups\_all\_az) | This deploys one node-group across all AZs. You can define multiple node groups<br><br>Example:<pre>{<br>  pod = {<br>    capacity_type  = "ON_DEMAND"<br>    instance_types = []<br>    min_size       = 1<br>    max_size       = 3<br>    desired_size   = 1<br>    disk_size      = 50 # GiB<br>    labels = {<br>      "infra.k8s.mailstep/group" = "primary"<br>    }<br>  }<br>}</pre> | `map(any)` | `{}` | no |
-| <a name="input_node_groups_per_az"></a> [node\_groups\_per\_az](#input\_node\_groups\_per\_az) | This deploys one node-group for each AZ. You can define multiple node groups<br><br>Example:<pre>{<br>  pod = {<br>    capacity_type  = "ON_DEMAND"<br>    instance_types = []<br>    min_size       = 1<br>    max_size       = 3<br>    desired_size   = 1<br>    disk_size      = 50 # GiB<br>    labels = {<br>      "infra.k8s.mailstep/group" = "primary"<br>    }<br>  }<br>}</pre> | `map(any)` | `{}` | no |
+| <a name="input_node_group_defaults"></a> [node\_group\_defaults](#input\_node\_group\_defaults) | Contains configuration for EKS module's `node_group_defaults` attribute.<br><br>Bottlerocket is used by default.<br><br>Example:<pre>{<br>  instance_types = ["t3.medium"]<br>}</pre> | <pre>object({<br>    instance_types             = list(string)<br>    ami_type                   = optional(string, "BOTTLEROCKET_x86_64")<br>    platform                   = optional(string, "bottlerocket")<br>    use_custom_launch_template = optional(bool, false)<br>  })</pre> | n/a | yes |
+| <a name="input_node_groups_all_az"></a> [node\_groups\_all\_az](#input\_node\_groups\_all\_az) | This deploys one node-group across all AZs. You can define multiple node groups<br><br>Example:<pre>{<br>  pod = {<br>    capacity_type  = "ON_DEMAND"<br>    instance_types = []<br>    min_size       = 1<br>    max_size       = 3<br>    desired_size   = 1<br>    disk_size      = 50 # GiB<br>    labels = {<br>      "infra.k8s.mailstep/group" = "primary"<br>    }<br>  }<br>}</pre> | <pre>map(object({<br>    min_size       = number<br>    max_size       = number<br>    desired_size   = number<br>    instance_types = list(string)<br>    capacity_type  = optional(string, "ON_DEMAND")<br>    disk_size      = optional(number, 50)<br>    labels         = optional(map(string), {})<br>    tags           = optional(map(string), {})<br>    subnet_ids     = optional(list(string))<br>  }))</pre> | `{}` | no |
+| <a name="input_node_groups_per_az"></a> [node\_groups\_per\_az](#input\_node\_groups\_per\_az) | This deploys one node-group for each AZ. You can define multiple node groups<br><br>Example:<pre>{<br>  pod = {<br>    capacity_type  = "ON_DEMAND"<br>    instance_types = []<br>    min_size       = 1<br>    max_size       = 3<br>    desired_size   = 1<br>    disk_size      = 50 # GiB<br>    labels = {<br>      "infra.k8s.mailstep/group" = "primary"<br>    }<br>  }<br>}</pre> | <pre>map(object({<br>    min_size       = number<br>    max_size       = number<br>    desired_size   = number<br>    instance_types = list(string)<br>    capacity_type  = optional(string, "ON_DEMAND")<br>    disk_size      = optional(number, 50)<br>    labels         = optional(map(string), {})<br>    tags           = optional(map(string), {})<br>    subnet_ids     = optional(list(string))<br>  }))</pre> | `{}` | no |
 | <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | List of private subnet ID strings. Those are bound to AZ order! | `list(string)` | n/a | yes |
 | <a name="input_project"></a> [project](#input\_project) | Unique project name. Used in automatic labeling. | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region name | `string` | n/a | yes |
-| <a name="input_sg_rules_cluster"></a> [sg\_rules\_cluster](#input\_sg\_rules\_cluster) | Additional security group rules for node groups<br><br>Example:<pre>{<br>  ingress_smtp = {<br>    description      = "A dirty SMTP example"<br>    protocol         = "udp"<br>    from_port        = 25<br>    to_port          = 25<br>    type             = "ingress"<br>    cidr_blocks      = ["0.0.0.0/0"]<br>    ipv6_cidr_blocks = ["::/0"]<br>  }<br>}</pre> | `map(any)` | `{}` | no |
-| <a name="input_sg_rules_nodes"></a> [sg\_rules\_nodes](#input\_sg\_rules\_nodes) | Additional security group rules for cluster control plane<br><br>Example:<pre>{<br>  ingress_smtp = {<br>    description      = "A dirty SMTP example"<br>    protocol         = "udp"<br>    from_port        = 25<br>    to_port          = 25<br>    type             = "ingress"<br>    cidr_blocks      = ["0.0.0.0/0"]<br>    ipv6_cidr_blocks = ["::/0"]<br>  }<br>}</pre> | `map(any)` | `{}` | no |
+| <a name="input_sg_rules_cluster"></a> [sg\_rules\_cluster](#input\_sg\_rules\_cluster) | Additional security group rules for node groups<br><br>Example:<pre>{<br>  ingress_smtp = {<br>    description      = "A dirty SMTP example"<br>    protocol         = "udp"<br>    from_port        = 25<br>    to_port          = 25<br>    type             = "ingress"<br>    cidr_blocks      = ["0.0.0.0/0"]<br>    ipv6_cidr_blocks = ["::/0"]<br>  }<br>}</pre> | <pre>map(object({<br>    description                = string<br>    from_port                  = number<br>    to_port                    = number<br>    type                       = string<br>    protocol                   = optional(string, "-1")<br>    cidr_blocks                = optional(list(string), [])<br>    ipv6_cidr_blocks           = optional(list(string), [])<br>    self                       = optional(bool)<br>    source_node_security_group = optional(bool)<br>  }))</pre> | `{}` | no |
+| <a name="input_sg_rules_nodes"></a> [sg\_rules\_nodes](#input\_sg\_rules\_nodes) | Additional security group rules for cluster control plane<br><br>Example:<pre>{<br>  ingress_smtp = {<br>    description      = "A dirty SMTP example"<br>    protocol         = "udp"<br>    from_port        = 25<br>    to_port          = 25<br>    type             = "ingress"<br>    cidr_blocks      = ["0.0.0.0/0"]<br>    ipv6_cidr_blocks = ["::/0"]<br>  }<br>}</pre> | <pre>map(object({<br>    description                = string<br>    from_port                  = number<br>    to_port                    = number<br>    type                       = string<br>    protocol                   = optional(string, "-1")<br>    cidr_blocks                = optional(list(string), [])<br>    ipv6_cidr_blocks           = optional(list(string), [])<br>    self                       = optional(bool)<br>    source_node_security_group = optional(bool)<br>  }))</pre> | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID to deploy the EKS to | `string` | n/a | yes |
 ## Outputs
 

@@ -73,8 +73,12 @@ variable "k8s_control_public" {
 }
 
 variable "node_group_defaults" {
-  type        = map(any)
-  default     = {}
+  type = object({
+    instance_types             = list(string)
+    ami_type                   = optional(string, "BOTTLEROCKET_x86_64")
+    platform                   = optional(string, "bottlerocket")
+    use_custom_launch_template = optional(bool, false)
+  })
   description = <<-EOF
   Contains configuration for EKS module's `node_group_defaults` attribute.
 
@@ -90,7 +94,17 @@ variable "node_group_defaults" {
 }
 
 variable "node_groups_all_az" {
-  type        = map(any)
+  type = map(object({
+    min_size       = number
+    max_size       = number
+    desired_size   = number
+    instance_types = list(string)
+    capacity_type  = optional(string, "ON_DEMAND")
+    disk_size      = optional(number, 50)
+    labels         = optional(map(string), {})
+    tags           = optional(map(string), {})
+    subnet_ids     = optional(list(string))
+  }))
   default     = {}
   description = <<-EOF
   This deploys one node-group across all AZs. You can define multiple node groups
@@ -115,7 +129,17 @@ variable "node_groups_all_az" {
 }
 
 variable "node_groups_per_az" {
-  type        = map(any)
+  type = map(object({
+    min_size       = number
+    max_size       = number
+    desired_size   = number
+    instance_types = list(string)
+    capacity_type  = optional(string, "ON_DEMAND")
+    disk_size      = optional(number, 50)
+    labels         = optional(map(string), {})
+    tags           = optional(map(string), {})
+    subnet_ids     = optional(list(string))
+  }))
   default     = {}
   description = <<-EOF
   This deploys one node-group for each AZ. You can define multiple node groups
@@ -141,7 +165,17 @@ variable "node_groups_per_az" {
 
 
 variable "sg_rules_cluster" {
-  type        = map(any)
+  type = map(object({
+    description                = string
+    from_port                  = number
+    to_port                    = number
+    type                       = string
+    protocol                   = optional(string, "-1")
+    cidr_blocks                = optional(list(string), [])
+    ipv6_cidr_blocks           = optional(list(string), [])
+    self                       = optional(bool)
+    source_node_security_group = optional(bool)
+  }))
   default     = {}
   description = <<-EOF
   Additional security group rules for node groups
@@ -164,7 +198,17 @@ variable "sg_rules_cluster" {
 }
 
 variable "sg_rules_nodes" {
-  type        = map(any)
+  type = map(object({
+    description                = string
+    from_port                  = number
+    to_port                    = number
+    type                       = string
+    protocol                   = optional(string, "-1")
+    cidr_blocks                = optional(list(string), [])
+    ipv6_cidr_blocks           = optional(list(string), [])
+    self                       = optional(bool)
+    source_node_security_group = optional(bool)
+  }))
   default     = {}
   description = <<-EOF
   Additional security group rules for cluster control plane

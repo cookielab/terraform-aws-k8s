@@ -13,11 +13,11 @@ locals {
   k8s_node_groups_per_az = merge([
     for group, cfg in var.node_groups_per_az : {
       for i, az in var.availability_zones :
-      "${group}_${az}" => merge(cfg, {
+      "${group}_${az}" => merge(tomap(cfg), {
         subnet_ids = [var.private_subnet_ids[i]]
-        labels = merge(cfg["labels"], {
+        labels = merge(cfg.labels, {
           "${local.k8s_infra_prefix}/cluster"    = var.cluster_name,
-          "${local.k8s_infra_prefix}/node-group" = format("%s_%s-%s", group, az, replace(lower(cfg["capacity_type"]), "_", "-")),
+          "${local.k8s_infra_prefix}/node-group" = format("%s_%s-%s", group, az, replace(lower(cfg.capacity_type), "_", "-")),
         })
       })
     }
@@ -25,17 +25,18 @@ locals {
 
   # All-AZ node-groups
   k8s_node_groups_all_az = {
-    for group, cfg in var.node_groups_all_az : "${group}_${var.region}" => merge(cfg, {
+    for group, cfg in var.node_groups_all_az :
+    "${group}_${var.region}" => merge(tomap(cfg), {
       subnet_ids = var.private_subnet_ids
-      labels = merge(cfg["labels"], {
+      labels = merge(cfg.labels, {
         "${local.k8s_infra_prefix}/cluster"    = var.cluster_name,
-        "${local.k8s_infra_prefix}/node-group" = format("%s_%s-%s", group, var.region, replace(lower(cfg["capacity_type"]), "_", "-")),
+        "${local.k8s_infra_prefix}/node-group" = format("%s_%s-%s", group, var.region, replace(lower(cfg.capacity_type), "_", "-")),
       })
     })
   }
 
   # Nodes additional security-groups
-  k8s_sg_rules_nodes = merge(var.sg_rules_nodes, {
+  k8s_sg_rules_nodes = merge(tomap(var.sg_rules_nodes), {
     ingress_self_all = {
       description = format("Intra-cluster communication (%s)", var.cluster_name)
       protocol    = "-1"
@@ -56,7 +57,7 @@ locals {
   })
 
   # Cluster additional security-groups
-  k8s_sg_rules_cluster = merge(var.sg_rules_cluster, {
+  k8s_sg_rules_cluster = merge(tomap(var.sg_rules_cluster), {
     egress_aws_lb_controller_webhook = {
       description                = format("AWS LB Controller webhook (%s)", var.cluster_name)
       protocol                   = "tcp"
@@ -172,6 +173,7 @@ module "ebs_csi_irsa" {
     }
   }
 }
+
 
 #
 # Autoscaler
